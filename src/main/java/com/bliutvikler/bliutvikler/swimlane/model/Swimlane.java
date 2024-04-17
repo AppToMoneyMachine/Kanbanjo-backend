@@ -2,6 +2,7 @@ package com.bliutvikler.bliutvikler.swimlane.model;
 
 import com.bliutvikler.bliutvikler.board.model.Board;
 import com.bliutvikler.bliutvikler.task.model.Task;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -17,6 +18,7 @@ public class Swimlane {
 
     @ManyToOne
     @JoinColumn(name = "board_id")  // Denne linjen spesifiserer navnet på kolonnen som inneholder fremmednøkkelen.
+    @JsonBackReference
     private Board board;  // Dette er referansen tilbake til Board.
 
     // fremmednøkkel ligger i Task tabellen.

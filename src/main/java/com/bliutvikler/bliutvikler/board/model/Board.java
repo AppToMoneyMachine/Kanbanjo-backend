@@ -1,5 +1,6 @@
 package com.bliutvikler.bliutvikler.board.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 
@@ -7,6 +8,7 @@ import com.bliutvikler.bliutvikler.participant.model.Participant;
 import com.bliutvikler.bliutvikler.swimlane.model.Swimlane;
 import com.bliutvikler.bliutvikler.task.model.Task;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -17,11 +19,12 @@ public class Board {
     private Long id;
     private String name;
 
-    @OneToMany(mappedBy = "board")
-    private List<Swimlane> swimlanes;
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Swimlane> swimlanes = new ArrayList<>();
 
-    @OneToMany(mappedBy = "board")
-    private List<Task> tasks;
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Task> tasks = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
@@ -35,13 +38,17 @@ public class Board {
         // Nødvendig tom konstruktør for JPA
     }
 
-    public Board(String name, List<Swimlane> swimlanes, List<Task> tasks, List<Participant> participants) {
+    public Board(Long id, String name, List<Swimlane> swimlanes, List<Task> tasks, List<Participant> participants) {
         this.name = name;
         this.swimlanes = swimlanes;
         this.tasks = tasks;
         this.participants = participants;
     }
     // getters
+    public Long getId() {
+        return id;
+    }
+
     public String getName() {
         return name;
     }
@@ -60,6 +67,11 @@ public class Board {
 
     public List<Participant> getParticipants() {
         return participants;
+    }
+
+    public void addSwimlane(Swimlane swimlane) {
+        swimlanes.add(swimlane);
+        swimlane.setBoard(this);
     }
 
     // setters
