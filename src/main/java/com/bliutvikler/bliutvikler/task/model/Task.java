@@ -3,6 +3,7 @@ package com.bliutvikler.bliutvikler.task.model;
 import com.bliutvikler.bliutvikler.board.model.Board;
 import com.bliutvikler.bliutvikler.participant.model.Participant;
 import com.bliutvikler.bliutvikler.swimlane.model.Swimlane;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -32,6 +33,7 @@ public class Task {
 
     @ManyToOne
     @JoinColumn(name = "swimlane_id") // Definerer kolonnenavn for fremmednøkkel i databasen
+    @JsonBackReference
     private Swimlane swimlane;
 
     @ManyToOne

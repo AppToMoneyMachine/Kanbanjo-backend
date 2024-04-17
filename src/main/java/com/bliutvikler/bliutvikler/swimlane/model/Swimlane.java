@@ -3,6 +3,7 @@ package com.bliutvikler.bliutvikler.swimlane.model;
 import com.bliutvikler.bliutvikler.board.model.Board;
 import com.bliutvikler.bliutvikler.task.model.Task;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class Swimlane {
     // fremmednøkkel ligger i Task tabellen.
     // Cascade gir mye automatiser funksjon knyttet til relasjonen mellom Task og swimlane
     @OneToMany(mappedBy = "swimlane", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<Task> tasks;
 
     public Swimlane() {
