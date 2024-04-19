@@ -3,6 +3,7 @@ package com.bliutvikler.bliutvikler.task.service;
 import com.bliutvikler.bliutvikler.board.model.Board;
 import com.bliutvikler.bliutvikler.board.repository.BoardRepository;
 import com.bliutvikler.bliutvikler.swimlane.model.Swimlane;
+import com.bliutvikler.bliutvikler.swimlane.repository.SwimlaneRepository;
 import com.bliutvikler.bliutvikler.task.model.Task;
 import com.bliutvikler.bliutvikler.task.repository.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,9 @@ public class TaskService {
 
     @Autowired
     private BoardRepository boardRepository;
+
+    @Autowired
+    private SwimlaneRepository swimlaneRepository;
 
     @Autowired
     private TaskRepository taskRepository;
@@ -40,5 +44,19 @@ public class TaskService {
         todoSwimlane.getTasks().add(task);
 
         return taskRepository.save(task);
+    }
+
+    public Task moveTaskBetweenSwimlanes(Long taskId, Long targetSwimlaneId) {
+        // finne tasken som skal flyttes
+        Task taskToBeMoved = taskRepository.findById(taskId).orElseThrow(() -> new IllegalArgumentException("Task not found with ID: " + taskId));
+
+        // ønsker destinasjon - id på swimlane
+        Swimlane targetSwimlane = swimlaneRepository.findById(targetSwimlaneId).orElseThrow(() -> new IllegalArgumentException("Swimlane not found with ID: " + targetSwimlaneId));
+
+        if (!taskToBeMoved.getSwimlane().getBoard().getId().equals(targetSwimlane.getBoard().getId())) {
+            throw new IllegalArgumentException("Swimlane is not on the same board as the task");
+        }
+        taskToBeMoved.setSwimlane(targetSwimlane);
+        return taskRepository.save(taskToBeMoved);
     }
 }

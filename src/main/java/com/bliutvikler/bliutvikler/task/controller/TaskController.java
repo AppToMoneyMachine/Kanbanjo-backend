@@ -34,4 +34,19 @@ public class TaskController {
         }
 
     }
+
+    @PutMapping("/{taskId}/move/{swimlaneId}")
+    public ResponseEntity<Task> moveTask(@PathVariable Long taskId, @PathVariable Long swimlaneId) {
+        try {
+            Task movedTask = taskService.moveTaskBetweenSwimlanes(taskId, swimlaneId);
+            logger.info("Task moved successfully with ID {}", taskId);
+            return ResponseEntity.ok(movedTask);
+        } catch (IllegalStateException e) {
+            logger.error("Error creating task: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        } catch(Exception e) {
+            logger.error("Error creating task: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 }
