@@ -39,6 +39,7 @@ public class TaskService {
         }
 
         // Legge task under første swimlane
+        // Legg til swimlane i task
         Swimlane todoSwimlane = swimlanes.get(0);
         task.setSwimlane(todoSwimlane);
         todoSwimlane.getTasks().add(task);
@@ -50,7 +51,7 @@ public class TaskService {
         // finne tasken som skal flyttes
         Task taskToBeMoved = taskRepository.findById(taskId).orElseThrow(() -> new IllegalArgumentException("Task not found with ID: " + taskId));
 
-        // ønsker destinasjon - id på swimlane
+        // ønsket destinasjon - id på swimlane
         Swimlane targetSwimlane = swimlaneRepository.findById(targetSwimlaneId).orElseThrow(() -> new IllegalArgumentException("Swimlane not found with ID: " + targetSwimlaneId));
 
         if (!taskToBeMoved.getSwimlane().getBoard().getId().equals(targetSwimlane.getBoard().getId())) {
@@ -58,5 +59,11 @@ public class TaskService {
         }
         taskToBeMoved.setSwimlane(targetSwimlane);
         return taskRepository.save(taskToBeMoved);
+    }
+
+    public void deleteTask(Long taskId) {
+        // finne tasken som skal slettes
+        Task taskToBeDeleted = taskRepository.findById(taskId).orElseThrow(() -> new IllegalArgumentException("Task not found with ID: " + taskId));
+        taskRepository.delete(taskToBeDeleted);
     }
 }

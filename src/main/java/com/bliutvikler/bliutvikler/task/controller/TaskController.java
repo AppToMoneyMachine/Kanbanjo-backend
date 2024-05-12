@@ -42,10 +42,26 @@ public class TaskController {
             logger.info("Task moved successfully with ID {}", taskId);
             return ResponseEntity.ok(movedTask);
         } catch (IllegalStateException e) {
-            logger.error("Error creating task: {}", e.getMessage());
+            logger.error("Error moving task: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         } catch(Exception e) {
-            logger.error("Error creating task: {}", e.getMessage());
+            logger.error("Error moving task: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @DeleteMapping("/delete/{taskId}")
+    public ResponseEntity<Void> deleteTask(@PathVariable Long taskId) {
+        try {
+        taskService.deleteTask(taskId);
+            logger.info("Task deleted successfully with ID {}", taskId);
+        return ResponseEntity.ok().build(); // ingen body returneres pga delete
+        } catch (IllegalArgumentException e) {
+            logger.error("Task to be deleted was not found {}", e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
+        catch (Exception e) {
+            logger.error("Error deleting task: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }

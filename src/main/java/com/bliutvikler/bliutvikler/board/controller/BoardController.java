@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RestController
-@RequestMapping("api/boards")
+@RequestMapping("api/board")
 public class BoardController {
 
     private static final Logger logger = LoggerFactory.getLogger(BoardController.class);
