@@ -50,6 +50,22 @@ public class TaskController {
         }
     }
 
+    @PutMapping("/update/{taskId}")
+    public ResponseEntity<Task> updateTask(@RequestBody Task task ,@PathVariable Long taskId) {
+        try {
+            Task updatedTask = taskService.updateTask(taskId, task);
+            logger.info("Task updated successfully with ID {}", taskId);
+            return ResponseEntity.ok(updatedTask);
+        } catch (IllegalStateException e) {
+            logger.error("Error updating task - bad request: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        } catch (Exception e) {
+            logger.error("Errorupdating task: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+
     @DeleteMapping("/delete/{taskId}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long taskId) {
         try {

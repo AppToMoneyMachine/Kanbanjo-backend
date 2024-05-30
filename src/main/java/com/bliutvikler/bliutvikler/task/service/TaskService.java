@@ -61,6 +61,28 @@ public class TaskService {
         return taskRepository.save(taskToBeMoved);
     }
 
+    public Task updateTask(Long taskId, Task taskInputData) {
+        // finne tasken som skal oppdateres
+        Task taskToBeUpdated = taskRepository.findById(taskId).orElseThrow(() -> new IllegalArgumentException("Task not found with ID:" + taskId));
+        // data som task skal oppdateres med
+        if (taskInputData.getName() != null) {
+            taskToBeUpdated.setName(taskInputData.getName());
+        }
+        if (taskInputData.getDescription() != null) {
+            taskToBeUpdated.setDescription(taskInputData.getDescription());
+        }
+        if (taskInputData.getParticipant() != null) {
+            taskToBeUpdated.setParticipant(taskInputData.getParticipant());
+        }
+        if (taskInputData.getStatus() != null) {
+            taskToBeUpdated.setStatus(taskInputData.getStatus());
+        }
+        if (taskInputData.getPriority() != null) {
+            taskToBeUpdated.setPriority(taskInputData.getPriority());
+        }
+        return taskRepository.save(taskToBeUpdated);
+    }
+
     public void deleteTask(Long taskId) {
         // finne tasken som skal slettes
         Task taskToBeDeleted = taskRepository.findById(taskId).orElseThrow(() -> new IllegalArgumentException("Task not found with ID: " + taskId));
