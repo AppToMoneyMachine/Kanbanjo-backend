@@ -1,0 +1,49 @@
+package com.bliutvikler.bliutvikler.swimlane.service;
+
+import com.bliutvikler.bliutvikler.board.model.Board;
+import com.bliutvikler.bliutvikler.board.repository.BoardRepository;
+import com.bliutvikler.bliutvikler.swimlane.model.Swimlane;
+import com.bliutvikler.bliutvikler.swimlane.repository.SwimlaneRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class SwimlaneService {
+
+    @Autowired
+    private SwimlaneRepository swimlaneRepository;
+
+    @Autowired
+    private BoardRepository boardRepository;
+
+    private static final int MAX_SWIMLANES = 10;
+
+    public Swimlane createNewSwimlane(Long boardId) {
+        // Finne tilhørende board og sjekk om bord finnes
+        Optional<Board> boardOptional = boardRepository.findById(boardId);
+        if (!boardOptional.isPresent()) {
+            throw new IllegalStateException("Board not found");
+        }
+        Board board = boardOptional.get();
+        // Finne tilhørende swimlane
+        List<Swimlane> swimlanes = board.getSwimlanes();
+
+        if (swimlanes.isEmpty()) {
+            throw new IllegalStateException("No swimlanes available on this board!");
+        }
+
+        Swimlane newDefaultSwimlane = new Swimlane("New swimlane", new ArrayList<>(), board);
+
+        if (swimlanes.size() >= MAX_SWIMLANES) {
+            throw new IllegalStateException("Max number of swimlanes reached.");
+        }
+        swimlanes.add(newDefaultSwimlane);
+        board.setSwimlanes(swimlanes);
+
+        return swimlaneRepository.save(newDefaultSwimlane);
+    }
+}
