@@ -46,4 +46,20 @@ public class SwimlaneService {
 
         return swimlaneRepository.save(newDefaultSwimlane);
     }
+
+    public void deleteExistingSwimlane(Long swimlaneId, Long boardId) {
+        Swimlane swimlaneToDelete = swimlaneRepository.findById(swimlaneId).orElseThrow(() -> new IllegalArgumentException("Swimlane not found with ID: " + swimlaneId));
+        Board board = boardRepository.findById(boardId).orElseThrow(() -> new IllegalArgumentException("Cannot find board with ID: " + boardId));
+        List<Swimlane> swimlanes = board.getSwimlanes();
+
+        if (swimlanes.size() < 3) {
+            throw new IllegalStateException("Too few swimlanes to use delete operation. Minimum 2 swimlanes must be present.");
+        }
+
+        swimlanes.remove(swimlaneToDelete);
+        board.setSwimlanes(swimlanes);
+        boardRepository.save(board);
+
+        swimlaneRepository.delete(swimlaneToDelete);
+    }
 }

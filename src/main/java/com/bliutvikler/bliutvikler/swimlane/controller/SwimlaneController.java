@@ -33,4 +33,21 @@ public class SwimlaneController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
+    @DeleteMapping("/delete/{swimlaneId}/{boardId}")
+    public ResponseEntity<Swimlane> deleteSwimlane(@PathVariable Long swimlaneId, @PathVariable Long boardId) {
+        try {
+            swimlaneService.deleteExistingSwimlane(swimlaneId, boardId);
+            logger.info("Swimlane deleted successfully with ID -  {}", swimlaneId);
+            return ResponseEntity.ok().build(); // ingen body returneres pga delete
+        } catch (IllegalStateException e) {
+            logger.info("Minimum number of swimlanes reached -  {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        catch (Exception e) {
+            logger.info("Error with deleting swimlane -  {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
 }
