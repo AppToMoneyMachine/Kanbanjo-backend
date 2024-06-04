@@ -50,4 +50,16 @@ public class SwimlaneController {
         }
     }
 
+    @PutMapping("update/{swimlaneId}")
+    public ResponseEntity<Swimlane> updateSwimlaneName(@PathVariable Long swimlaneId, @RequestBody Swimlane newSwimlaneName) {
+        try {
+            Swimlane swimlaneToUpdate = swimlaneService.updateSwimlaneName(swimlaneId, newSwimlaneName);
+            logger.info("Updated swimlane name successfully");
+            return ResponseEntity.ok(swimlaneToUpdate);
+        } catch (Exception e) {
+            logger.info("Error with updateing swimlane name -  {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
 }

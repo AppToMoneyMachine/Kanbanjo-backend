@@ -62,4 +62,11 @@ public class SwimlaneService {
 
         swimlaneRepository.delete(swimlaneToDelete);
     }
+
+    public Swimlane updateSwimlaneName(Long swimlaneId, Swimlane swimLaneInputData) {
+        Swimlane swimlaneToUpdate = swimlaneRepository.findById(swimlaneId).orElseThrow(() -> new IllegalArgumentException("Swimlane not found with ID: " + swimlaneId));
+
+        swimlaneToUpdate.setName(swimLaneInputData.getName());
+        return swimlaneRepository.save(swimlaneToUpdate);
+    }
 }
