@@ -22,6 +22,10 @@ public class Role {
         // Nødvendig tom konstruktør for JPA
     }
 
+    public Role(String name) {
+        this.name = name;
+    }
+
     public Role(Long id, String name) {
         this.id = id;
         this.name = name;

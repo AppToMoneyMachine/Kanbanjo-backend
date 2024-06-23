@@ -5,6 +5,7 @@ import com.bliutvikler.bliutvikler.role.model.Role;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "users")
 public class User {
 
     @Id
@@ -51,6 +52,10 @@ public class User {
         return email;
     }
 
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
     // setters
     public void setUsername(String username) {
         this.username = username;
@@ -62,5 +67,9 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 }
