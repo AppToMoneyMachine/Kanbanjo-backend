@@ -8,7 +8,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 @Component
-public class Dataloader implements ApplicationRunner {
+public class DataLoader implements ApplicationRunner {
 
     @Autowired
     private RoleRepository roleRepository;
