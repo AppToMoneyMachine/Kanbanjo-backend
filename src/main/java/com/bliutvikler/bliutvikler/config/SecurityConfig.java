@@ -34,14 +34,21 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/public/**").permitAll()
-                        .requestMatchers("api/user/register/**").permitAll() // tillat registrering av uautentiserte brukere
-                        .requestMatchers("api/user/login/**").permitAll() // Tillat tilgang
+                        .requestMatchers("/api/user/register/**").permitAll() // tillat registrering av uautentiserte brukere
+                        .requestMatchers("/api/user/login/**").permitAll() // Tillat tilgang
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/user/info/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults()
                 )
-                .logout(logout -> logout.permitAll());
+                .logout(logout -> logout
+                        .logoutUrl("/api/user/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
+                );
         return http.build();
     }
 }
