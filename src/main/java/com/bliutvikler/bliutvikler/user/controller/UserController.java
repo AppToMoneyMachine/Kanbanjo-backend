@@ -1,5 +1,6 @@
 package com.bliutvikler.bliutvikler.user.controller;
 
+import com.bliutvikler.bliutvikler.jwt.JwtUtil;
 import com.bliutvikler.bliutvikler.user.model.User;
 import com.bliutvikler.bliutvikler.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,6 +29,9 @@ public class UserController {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody User user) {
         userService.save(user);
@@ -44,8 +48,10 @@ public class UserController {
             // Forsøk å autentisere brukeren
             Authentication authentication = authenticationManager.authenticate(authenticationToken);
 
+            String token = jwtUtil.generateToken(user.getUsername());
+
             // Hvis autentiseringen lykkes, returner en suksessmelding
-            return ResponseEntity.ok("User successfully logged in");
+            return ResponseEntity.ok("Bearer " + token);
         } catch(AuthenticationException e) {
             return ResponseEntity.status(401).body("Invalid username or password");
         }
