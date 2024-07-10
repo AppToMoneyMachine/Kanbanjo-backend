@@ -44,11 +44,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/user/login/**").permitAll() // Tillat tilgang
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/user/info/**").hasRole("USER")
-                        .anyRequest().authenticated()
-                ).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy
-                        .STATELESS)).addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
-                .httpBasic(Customizer.withDefaults()
-                )
+                        .anyRequest().authenticated())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
+                .httpBasic(Customizer.withDefaults())
                 .logout(logout -> logout
                         .logoutUrl("/api/user/logout")
                         .logoutSuccessUrl("/login?logout")
