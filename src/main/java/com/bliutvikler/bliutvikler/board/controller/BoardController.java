@@ -5,6 +5,7 @@ import com.bliutvikler.bliutvikler.board.service.BoardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ public class BoardController {
     @Autowired
     private BoardService boardService;
 
+    @PreAuthorize("isAuthenticated") // only logged in users can create a board
     @PostMapping
     public ResponseEntity<Board> createBoard(@RequestBody Board board) {
         try {
@@ -32,6 +34,7 @@ public class BoardController {
 
     }
 
+    @PreAuthorize("isAuthenticated") // only logged in users can read a board
     @GetMapping("{id}")
     public ResponseEntity<Board> getBoard(@PathVariable Long id) {
         try {
