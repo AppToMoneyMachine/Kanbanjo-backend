@@ -3,6 +3,7 @@ package com.bliutvikler.bliutvikler.board.service;
 import com.bliutvikler.bliutvikler.board.model.Board;
 import com.bliutvikler.bliutvikler.board.repository.BoardRepository;
 import com.bliutvikler.bliutvikler.swimlane.model.Swimlane;
+import com.bliutvikler.bliutvikler.user.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,13 +32,24 @@ public class BoardService {
         return boardRepository.save(board);
     }
 
-    public Optional<Board> getBoard(Long id) {
+    public Optional<Board> getBoard(Long id, User currentUser) {
+        Board board = boardRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Board not found with ID: " + id));
+
+        if(!board.getOwner().getId().equals(currentUser.getId())) {
+            throw new IllegalArgumentException("User is not the owner of the board");
+        }
+
         return boardRepository.findById(id);
     }
 
-    public void deleteBoard(Long boardId) {
+    public void deleteBoard(Long boardId, User currentUser) {
         // find the board to be deleted
         Board boardToBeDeleted = boardRepository.findById(boardId).orElseThrow(() -> new IllegalArgumentException("Board not found with ID: " + boardId));
+
+        if(!boardToBeDeleted.getOwner().getId().equals(currentUser.getId())) {
+            throw new IllegalArgumentException("User is not the owner of the board");
+        }
+
         boardRepository.delete(boardToBeDeleted);
     }
 }

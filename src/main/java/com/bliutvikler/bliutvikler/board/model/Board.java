@@ -1,5 +1,6 @@
 package com.bliutvikler.bliutvikler.board.model;
 
+import com.bliutvikler.bliutvikler.user.model.User;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
@@ -34,15 +35,21 @@ public class Board {
     )
     private List<Participant> participants;
 
+    // many boards can have the same owner
+    @ManyToOne
+    @JoinColumn(name = "owner_id")
+    private User owner;
+
     public Board() {
         // Nødvendig tom konstruktør for JPA
     }
 
-    public Board(Long id, String name, List<Swimlane> swimlanes, List<Task> tasks, List<Participant> participants) {
+    public Board(Long id, String name, List<Swimlane> swimlanes, List<Task> tasks, List<Participant> participants, User owner) {
         this.name = name;
         this.swimlanes = swimlanes;
         this.tasks = tasks;
         this.participants = participants;
+        this.owner = owner;
     }
     // getters
     public Long getId() {
@@ -74,6 +81,10 @@ public class Board {
         swimlane.setBoard(this);
     }
 
+    public User getOwner() {
+        return owner;
+    }
+
     // setters
     public void setName(String name) {
         this.name = name;
@@ -89,6 +100,10 @@ public class Board {
 
     public void setParticipants(List<Participant> participants) {
         this.participants = participants;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
     }
 
 }
