@@ -34,4 +34,10 @@ public class BoardService {
     public Optional<Board> getBoard(Long id) {
         return boardRepository.findById(id);
     }
+
+    public void deleteBoard(Long boardId) {
+        // find the board to be deleted
+        Board boardToBeDeleted = boardRepository.findById(boardId).orElseThrow(() -> new IllegalArgumentException("Board not found with ID: " + boardId));
+        boardRepository.delete(boardToBeDeleted);
+    }
 }

@@ -52,4 +52,21 @@ public class BoardController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
+    @PreAuthorize("isAuthenticated")
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> deleteBoard(@PathVariable Long id) {
+        try {
+            boardService.deleteBoard(id);
+            logger.info("Task deleted successfully with ID {}", id);
+            return ResponseEntity.ok().build(); // ingen body returneres pga delete
+        } catch (IllegalArgumentException e) {
+            logger.error("Board to be deleted was not found {}", e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
+        catch (Exception e) {
+            logger.error("Error deleting board: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 }
