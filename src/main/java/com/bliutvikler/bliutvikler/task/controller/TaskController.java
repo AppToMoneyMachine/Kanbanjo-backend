@@ -2,9 +2,13 @@ package com.bliutvikler.bliutvikler.task.controller;
 
 import com.bliutvikler.bliutvikler.task.model.Task;
 import com.bliutvikler.bliutvikler.task.service.TaskService;
+import com.bliutvikler.bliutvikler.user.model.User;
+import com.bliutvikler.bliutvikler.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import org.slf4j.Logger;
@@ -19,10 +23,17 @@ public class TaskController {
     @Autowired
     private TaskService taskService;
 
+    @Autowired
+    private UserService userService;
+
     @PostMapping("/create/{boardId}")
     public ResponseEntity<Task> createTask(@RequestBody Task task, @PathVariable Long boardId) {
         try {
-            Task savedTask = taskService.createTask(task, boardId);
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User currentUser = userService.findByUsername(username); // get userobject from the database
+
+            Task savedTask = taskService.createTask(task, boardId, currentUser);
             logger.info("Task created successfully with ID {}", savedTask.getId());
             return ResponseEntity.ok(savedTask);
         } catch (IllegalStateException e) {
@@ -38,7 +49,11 @@ public class TaskController {
     @PutMapping("/{taskId}/move/{swimlaneId}")
     public ResponseEntity<Task> moveTask(@PathVariable Long taskId, @PathVariable Long swimlaneId) {
         try {
-            Task movedTask = taskService.moveTaskBetweenSwimlanes(taskId, swimlaneId);
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User currentUser = userService.findByUsername(username); // get userobject from the database
+
+            Task movedTask = taskService.moveTaskBetweenSwimlanes(taskId, swimlaneId, currentUser);
             logger.info("Task moved successfully with ID {}", taskId);
             return ResponseEntity.ok(movedTask);
         } catch (IllegalStateException e) {
@@ -53,7 +68,11 @@ public class TaskController {
     @PutMapping("/update/{taskId}")
     public ResponseEntity<Task> updateTask(@RequestBody Task task ,@PathVariable Long taskId) {
         try {
-            Task updatedTask = taskService.updateTask(taskId, task);
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User currentUser = userService.findByUsername(username); // get userobject from the database
+
+            Task updatedTask = taskService.updateTask(taskId, task, currentUser);
             logger.info("Task updated successfully with ID {}", taskId);
             return ResponseEntity.ok(updatedTask);
         } catch (IllegalStateException e) {
@@ -69,9 +88,14 @@ public class TaskController {
     @DeleteMapping("/delete/{taskId}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long taskId) {
         try {
-        taskService.deleteTask(taskId);
+
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User currentUser = userService.findByUsername(username); // get userobject from the database
+
+            taskService.deleteTask(taskId, currentUser);
             logger.info("Task deleted successfully with ID {}", taskId);
-        return ResponseEntity.ok().build(); // ingen body returneres pga delete
+            return ResponseEntity.ok().build(); // ingen body returneres pga delete
         } catch (IllegalArgumentException e) {
             logger.error("Task to be deleted was not found {}", e.getMessage());
             return ResponseEntity.notFound().build();
