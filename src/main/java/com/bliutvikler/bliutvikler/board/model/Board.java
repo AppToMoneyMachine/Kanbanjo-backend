@@ -4,7 +4,6 @@ import com.bliutvikler.bliutvikler.user.model.User;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
-
 import com.bliutvikler.bliutvikler.participant.model.Participant;
 import com.bliutvikler.bliutvikler.swimlane.model.Swimlane;
 import com.bliutvikler.bliutvikler.task.model.Task;
@@ -33,9 +32,8 @@ public class Board {
             joinColumns = @JoinColumn(name = "board_id"),
             inverseJoinColumns = @JoinColumn(name = "participant_id")
     )
-    private List<Participant> participants;
+    private List<Participant> participants = new ArrayList<>();
 
-    // many boards can have the same owner
     @ManyToOne
     @JoinColumn(name = "owner_id")
     private User owner;
@@ -45,6 +43,7 @@ public class Board {
     }
 
     public Board(Long id, String name, List<Swimlane> swimlanes, List<Task> tasks, List<Participant> participants, User owner) {
+        this.id = id;
         this.name = name;
         this.swimlanes = swimlanes;
         this.tasks = tasks;

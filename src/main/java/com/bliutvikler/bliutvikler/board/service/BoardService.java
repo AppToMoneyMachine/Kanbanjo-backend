@@ -2,8 +2,11 @@ package com.bliutvikler.bliutvikler.board.service;
 
 import com.bliutvikler.bliutvikler.board.model.Board;
 import com.bliutvikler.bliutvikler.board.repository.BoardRepository;
+import com.bliutvikler.bliutvikler.participant.model.Participant;
+import com.bliutvikler.bliutvikler.participant.repository.ParticipantRepository;
 import com.bliutvikler.bliutvikler.swimlane.model.Swimlane;
 import com.bliutvikler.bliutvikler.user.model.User;
+import com.bliutvikler.bliutvikler.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +19,12 @@ public class BoardService {
 
     @Autowired
     private BoardRepository boardRepository;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private ParticipantRepository participantRepository;
 
     public Board createBoardWithDefaultSwimlanes(Board board) {
         List<String> defaultSwimlaneNames = Arrays.asList("todo", "in_progress", "review", "done");
@@ -51,5 +60,39 @@ public class BoardService {
         }
 
         boardRepository.delete(boardToBeDeleted);
+    }
+
+    public void addParticipantToBoard(Long boardId, String participantUsername, User owner) {
+        Board board = boardRepository.findById(boardId).orElseThrow(() -> new IllegalArgumentException("Board not found with ID: " + boardId));
+
+        // check if the authenticated user is owner of the board
+        if (!board.getOwner().getId().equals(owner.getId())) {
+            throw new IllegalStateException("User is not the owner of this board");
+        }
+
+        User participantUser = userService.findByUsername(participantUsername);
+        if (participantUser == null) {
+            throw new IllegalStateException("Participant not found with username: " + participantUsername);
+        }
+
+        // check if participant already exists in board
+        Optional<Participant> existingParticipant = board.getParticipants().stream()
+                .filter(p -> p.getUsername().equals(participantUsername))
+                .findFirst();
+
+        if (existingParticipant.isPresent()) {
+            throw new IllegalArgumentException("Participant already exists in the board");
+        }
+
+        // convert user to participant
+        Participant participant = new Participant();
+        participant.setUsername(participantUser.getUsername());
+        participant.setRole("participant");
+
+        // Save participant before adding to board to avoid TransientObjectException
+        participant = participantRepository.save(participant);
+
+        board.getParticipants().add(participant);
+        boardRepository.save(board);
     }
 }

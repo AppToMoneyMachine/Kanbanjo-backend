@@ -90,4 +90,23 @@ public class BoardController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
+    @PreAuthorize("isAuthenticated")
+    @PostMapping("/{boardId}/add-participant")
+    public ResponseEntity<Void> addParticipantToBoard(@PathVariable Long boardId, @RequestParam String participantUsername) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String ownerUsername = authentication.getName();
+            User owner = userService.findByUsername(ownerUsername);
+
+            boardService.addParticipantToBoard(boardId, participantUsername, owner);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            logger.error("Error adding participant: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        } catch (Exception e) {
+            logger.error("Error adding participant: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 }
