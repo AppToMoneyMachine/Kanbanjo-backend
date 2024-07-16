@@ -38,6 +38,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String username = null;
         String jwtToken = null;
 
+        // No JWT validation for registering or login
+        String requestURI = request.getRequestURI();
+        if (requestURI.equals("/api/user/register") || requestURI.equals("/api/user/login")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         // JWT-tokenen er i form av "Bearer token". Fjern "Bearer" og få tokenen.
         if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
             jwtToken = requestTokenHeader.substring(7);

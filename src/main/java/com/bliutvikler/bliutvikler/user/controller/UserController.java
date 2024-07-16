@@ -1,11 +1,14 @@
 package com.bliutvikler.bliutvikler.user.controller;
 
+import com.bliutvikler.bliutvikler.board.controller.BoardController;
 import com.bliutvikler.bliutvikler.jwt.JwtUtil;
 import com.bliutvikler.bliutvikler.user.model.User;
 import com.bliutvikler.bliutvikler.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +27,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/api/user")
 public class UserController {
 
+    private static final Logger logger = LoggerFactory.getLogger(BoardController.class);
+
     @Autowired
     private UserService userService;
 
@@ -34,9 +39,24 @@ public class UserController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody User user) {
-        userService.save(user);
-        return ResponseEntity.ok("User registered successfully");
+    public ResponseEntity<User> registerUser(@RequestBody User user) {
+        try {
+            // Validate the incoming user data
+            if (user.getPassword() == null || user.getPassword().isEmpty()) {
+                throw new IllegalArgumentException("Password cannot be null or empty");
+            }
+
+            User savedUser = userService.save(user);
+            logger.info("Registered new user: {}", savedUser);
+            return ResponseEntity.ok(savedUser);
+        } catch (IllegalArgumentException e) {
+            logger.error("Error registering new user {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        } catch (Exception e) {
+            logger.error("Error registering new user {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+
     }
 
     @PostMapping("/login")

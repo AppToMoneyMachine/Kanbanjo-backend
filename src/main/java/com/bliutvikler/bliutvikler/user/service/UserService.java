@@ -23,6 +23,11 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
 
     public User save(User user) {
+
+        if (user.getPassword() == null || user.getPassword().isEmpty()) {
+            throw new IllegalArgumentException("Password cannot be null or empty");
+        }
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         Role userRole = roleRepository.findByName("ROLE_USER");
         user.setRoles(Collections.singleton(userRole));

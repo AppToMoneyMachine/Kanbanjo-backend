@@ -2,6 +2,7 @@ package com.bliutvikler.bliutvikler.user.model;
 import java.util.Set;
 
 import com.bliutvikler.bliutvikler.role.model.Role;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 @Entity
@@ -13,6 +14,7 @@ public class User {
     private Long id;
 
     private String username;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
     private String email;
 
