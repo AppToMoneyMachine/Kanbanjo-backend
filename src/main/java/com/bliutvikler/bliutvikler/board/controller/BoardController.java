@@ -100,12 +100,33 @@ public class BoardController {
             User owner = userService.findByUsername(ownerUsername);
 
             boardService.addParticipantToBoard(boardId, participantUsername, owner);
+            logger.info("Participant added successfully with username " + participantUsername);
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException e) {
             logger.error("Error adding participant: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         } catch (Exception e) {
             logger.error("Error adding participant: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @PreAuthorize("isAuthenticated")
+    @DeleteMapping("{boardId}/remove-participant")
+    public ResponseEntity<Void> deleteParticipantFromBoard(@PathVariable Long boardId, @RequestParam String participantUsername) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String ownerUsername = authentication.getName();
+            User owner = userService.findByUsername(ownerUsername);
+
+            boardService.deleteParticipantFromBoard(boardId, participantUsername, owner);
+            logger.info("Participant deleted successfully with username " + participantUsername);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            logger.error("Error deleting participant: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        } catch (Exception e) {
+            logger.error("Error deleting participant: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }

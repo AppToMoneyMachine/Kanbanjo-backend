@@ -67,7 +67,7 @@ public class BoardService {
 
         // check if the authenticated user is owner of the board
         if (!board.getOwner().getId().equals(owner.getId())) {
-            throw new IllegalStateException("User is not the owner of this board");
+            throw new IllegalStateException("User is not the owner of this board - not permitted to add participant");
         }
 
         User participantUser = userService.findByUsername(participantUsername);
@@ -93,6 +93,24 @@ public class BoardService {
         participant = participantRepository.save(participant);
 
         board.getParticipants().add(participant);
+        boardRepository.save(board);
+    }
+
+    public void deleteParticipantFromBoard(Long boardId, String participantUsername, User owner) {
+        Board board = boardRepository.findById(boardId).orElseThrow(() -> new IllegalArgumentException("Board not found with ID: " + boardId));
+
+        // check if the authenticated user is owner of the board
+        if (!board.getOwner().getId().equals(owner.getId())) {
+            throw new IllegalStateException("User is not the owner of this board - not permitted to delete participants");
+        }
+
+        // find participant by username
+        Participant participant = board.getParticipants().stream()
+                .filter(p -> p.getUsername().equals(participantUsername))
+                .findFirst().orElseThrow(() -> new IllegalArgumentException("Participant not found with username: " + participantUsername));
+
+        // remove participant from board
+        board.getParticipants().remove(participant);
         boardRepository.save(board);
     }
 }
