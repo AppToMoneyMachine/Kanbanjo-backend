@@ -1,6 +1,7 @@
 package com.bliutvikler.bliutvikler.user.controller;
 
 import com.bliutvikler.bliutvikler.board.controller.BoardController;
+import com.bliutvikler.bliutvikler.jwt.BlacklistedTokenService;
 import com.bliutvikler.bliutvikler.jwt.JwtUtil;
 import com.bliutvikler.bliutvikler.user.model.User;
 import com.bliutvikler.bliutvikler.user.service.UserService;
@@ -12,16 +13,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 @Controller
 @RequestMapping("/api/user")
@@ -37,6 +38,9 @@ public class UserController {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private BlacklistedTokenService blacklistedTokenService;
 
     @PostMapping("/register")
     public ResponseEntity<User> registerUser(@RequestBody User user) {
@@ -78,6 +82,7 @@ public class UserController {
         }
     }
 
+    @PreAuthorize("IsAuthorized")
     @GetMapping("/info")
     public ResponseEntity<String> getUserInfo() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -91,13 +96,24 @@ public class UserController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logoutUser(HttpServletRequest request, HttpServletResponse response) {
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
+    public ResponseEntity<String> logoutUser(@RequestHeader("Authorization") String token) {
+        try {
+            if (token.startsWith("Bearer ")) {
+                String jwtToken = token.substring(7);
+                LocalDateTime expiryDate = jwtUtil.extractExpiration(jwtToken).toInstant()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toLocalDateTime();
+                blacklistedTokenService.blacklistToken(jwtToken, expiryDate);
+                SecurityContextHolder.clearContext();
+                logger.info("User logged out and token blacklisted: {}", jwtToken);
+                return ResponseEntity.ok().build();
+            } else {
+                logger.error("Invalid token format");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+        } catch (Exception e) {
+            logger.error("Error logging out user: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        SecurityContextHolder.clearContext();
-        return ResponseEntity.ok("User successfully logged out");
     }
-
 }

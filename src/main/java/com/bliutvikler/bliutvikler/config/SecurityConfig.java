@@ -42,21 +42,16 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/public/**").permitAll()
-                        .requestMatchers("/api/user/register/**").permitAll() // tillat registrering av uautentiserte brukere
-                        .requestMatchers("/api/user/login/**").permitAll() // Tillat tilgang
+                        .requestMatchers("/api/user/register/**").permitAll() // Allow access to registration endpoint for all
+                        .requestMatchers("/api/user/login/**").permitAll() // Allow access to login endpoint for all
+                        .requestMatchers("/api/user/logout/**").permitAll() // Allow access to logout endpoint for all
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/user/info/**").hasRole("USER")
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
-                .httpBasic(Customizer.withDefaults())
-                .logout(logout -> logout
-                        .logoutUrl("/api/user/logout")
-                        .logoutSuccessUrl("/login?logout")
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID")
-                        .permitAll()
-                );
+                .httpBasic(Customizer.withDefaults());
         return http.build();
     }
+
 }

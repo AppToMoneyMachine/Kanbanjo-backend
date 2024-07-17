@@ -31,6 +31,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private BlacklistedTokenService blacklistedTokenService;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
         final String requestTokenHeader = request.getHeader("Authorization");
@@ -38,9 +41,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String username = null;
         String jwtToken = null;
 
-        // No JWT validation for registering or login
+        // No JWT validation for registering, login or logout
         String requestURI = request.getRequestURI();
-        if (requestURI.equals("/api/user/register") || requestURI.equals("/api/user/login")) {
+        if (requestURI.equals("/api/user/register") || requestURI.equals("/api/user/login") || requestURI.equals("/api/user/logout")) {
+            logger.info("No JWT validation for URI: {}", requestURI); // Debug statement
             chain.doFilter(request, response);
             return;
         }
@@ -63,8 +67,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-            // if valid token
-            if (jwtUtil.validateToken(jwtToken, userDetails.getUsername())) {
+            // check if token is blacklisted
+            if (blacklistedTokenService.isTokenBlacklisted(jwtToken)) {
+                logger.error("JWT token is blacklisted");
+            } else if (jwtUtil.validateToken(jwtToken, userDetails.getUsername())) {
+                // if valid token
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
