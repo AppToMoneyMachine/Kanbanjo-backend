@@ -41,6 +41,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/api/health").permitAll()
                         .requestMatchers("/public/**").permitAll()
                         .requestMatchers("/api/user/register/**").permitAll() // Allow access to registration endpoint for all
                         .requestMatchers("/api/user/login/**").permitAll() // Allow access to login endpoint for all
