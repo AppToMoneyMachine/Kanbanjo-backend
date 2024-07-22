@@ -1,0 +1,5 @@
+server:
+  port: 8080
+
+jwt:
+  secret: YXNkMTIyNGZzRFNGRmVlZkY1NHNkZnNkZjIzNGZoc3d3NzY4Nzhkc3NkU1NmZnNkZnc=

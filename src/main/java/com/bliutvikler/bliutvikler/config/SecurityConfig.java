@@ -4,6 +4,7 @@ import com.bliutvikler.bliutvikler.jwt.JwtRequestFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -26,6 +27,9 @@ public class SecurityConfig {
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
 
+    @Autowired
+    private Environment env;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -46,12 +50,19 @@ public class SecurityConfig {
                         .requestMatchers("/api/user/register/**").permitAll() // Allow access to registration endpoint for all
                         .requestMatchers("/api/user/login/**").permitAll() // Allow access to login endpoint for all
                         .requestMatchers("/api/user/logout/**").permitAll() // Allow access to logout endpoint for all
+                        .requestMatchers("/api/health/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/user/info/**").hasRole("USER")
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(Customizer.withDefaults());
+
+        // Use requiredChannel only in production - https
+        if ("prod".equals(System.getenv("SPRING_PROFILES_ACTIVE"))) {
+            http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
+        }
+
         return http.build();
     }
 
