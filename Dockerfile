@@ -7,7 +7,7 @@ WORKDIR /app
 # Copy the project files
 COPY . .
 
-# Give execute permission to the mvnw script
+# Give execute permissions to the Maven wrapper (mvnw script)
 RUN chmod +x ./mvnw
 
 # Build the project
