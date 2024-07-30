@@ -59,7 +59,7 @@ public class SecurityConfig {
                 .httpBasic(Customizer.withDefaults());
 
         // Use requiredChannel only in production - https
-        if ("prod".equals(System.getenv("SPRING_PROFILES_ACTIVE"))) {
+        if ("prod".equals(env.getProperty("spring.profiles.active"))) {
             http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
         }
 
