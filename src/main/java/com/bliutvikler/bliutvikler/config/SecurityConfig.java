@@ -16,6 +16,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true) // Activate Global Method Security for use of @PreAuthorize
@@ -56,14 +59,33 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
-                .httpBasic(Customizer.withDefaults());
+                .httpBasic(withDefaults());
 
         // Use requiredChannel only in production - https
-        if ("prod".equals(env.getProperty("spring.profiles.active"))) {
+        if (isProduction()) {
             http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
+            configureHeaders(http);
         }
 
         return http.build();
+    }
+
+    private boolean isProduction() {
+        String activeProfile = env.getProperty("spring.profiles.active");
+        return "prod".equals(activeProfile);
+    }
+
+    private void configureHeaders(HttpSecurity http) throws Exception {
+        http
+                .headers(headers -> headers
+                        .xssProtection(Customizer.withDefaults())
+                        .contentSecurityPolicy(csp -> csp.policyDirectives("script-src 'self'"))
+                        .frameOptions(frameOptions -> frameOptions.deny())
+                        .httpStrictTransportSecurity(hsts -> hsts.includeSubDomains(true).maxAgeInSeconds(31536000))
+                        .referrerPolicy(referrer -> referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.SAME_ORIGIN))
+                        .defaultsDisabled()
+                        .cacheControl(withDefaults())
+                );
     }
 
 }
