@@ -53,7 +53,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/user/register/**").permitAll() // Allow access to registration endpoint for all
                         .requestMatchers("/api/user/login/**").permitAll() // Allow access to login endpoint for all
                         .requestMatchers("/api/user/logout/**").permitAll() // Allow access to logout endpoint for all
-                        .requestMatchers("/api/health/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/user/info/**").hasRole("USER")
                         .anyRequest().authenticated())
@@ -63,7 +62,7 @@ public class SecurityConfig {
 
         // Use requiredChannel only in production - https
         if (isProduction()) {
-            http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
+            // http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
             configureHeaders(http);
         }
 
