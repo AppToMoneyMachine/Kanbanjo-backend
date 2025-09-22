@@ -4,6 +4,7 @@ import com.bliutvikler.bliutvikler.user.service.UserDetailsServiceImpl;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -36,10 +37,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
-        final String requestTokenHeader = request.getHeader("Authorization");
-
-        String username = null;
-        String jwtToken = null;
+        // final String requestTokenHeader = request.getHeader("Authorization");
 
         // No JWT validation for registering, login or logout
         String requestURI = request.getRequestURI();
@@ -49,8 +47,33 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             return;
         }
 
+
+        String username = null;
+        String jwtToken = extractTokenFromHeaderOrCookie(request);
+
+
+        if (jwtToken != null) {
+            try {
+                username = jwtUtil.extractUsername(jwtToken);
+            } catch (IllegalArgumentException e) {
+                logger.error("Unable to get JWT token", e);
+            } catch (ExpiredJwtException e) {
+                logger.error("JWT token has expired", e);
+            }
+        } else {
+            logger.warn("No JWT token found in header or cookie");
+        }
+
+        // No JWT validation for registering, login or logout
+        /*String requestURI = request.getRequestURI();
+        if (requestURI.equals("/api/user/register") || requestURI.equals("/api/user/login") || requestURI.equals("/api/user/logout")) {
+            logger.info("No JWT validation for URI: {}", requestURI); // Debug statement
+            chain.doFilter(request, response);
+            return;
+        }*/
+
         // JWT-tokenen er i form av "Bearer token". Fjern "Bearer" og få tokenen.
-        if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
+/*        if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
             jwtToken = requestTokenHeader.substring(7);
             try {
                 username = jwtUtil.extractUsername(jwtToken);
@@ -61,7 +84,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
         } else {
             logger.error("JWT Token does not begin with Bearer String");
-        }
+        }*/
 
         // Validate token
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -79,6 +102,35 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
             }
         }
+        logger.info("Request URI: {}", request.getRequestURI());
+        logger.info("JWT token: {}", jwtToken);
+        logger.info("Username: {}", username);
         chain.doFilter(request, response);
+    }
+    private String extractTokenFromHeaderOrCookie(HttpServletRequest request) {
+        // Try Authorization header first
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+
+        // Then try cookies
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("token".equals(cookie.getName())) {
+                    String value = cookie.getValue();
+                    if (value != null && value.startsWith("Bearer")) {
+                        return value.substring(7);
+                    }
+                    /*if (value.startsWith("Bearer ")) {
+                        return value.substring(7);
+                    }*/
+                    return value;
+                }
+            }
+        }
+
+        logger.warn("No JWT token found in request header or cookie");
+        return null;
     }
 }

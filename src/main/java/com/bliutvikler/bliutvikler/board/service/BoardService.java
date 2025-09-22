@@ -51,6 +51,11 @@ public class BoardService {
         return boardRepository.findById(id);
     }
 
+    public List<Board> getBoardByOwnerId(User currentUser) {
+        List<Board> boardList = boardRepository.findAllByOwnerId(currentUser.getId());
+        return boardList;
+    }
+
     public void deleteBoard(Long boardId, User currentUser) {
         // find the board to be deleted
         Board boardToBeDeleted = boardRepository.findById(boardId).orElseThrow(() -> new IllegalArgumentException("Board not found with ID: " + boardId));

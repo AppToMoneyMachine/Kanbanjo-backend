@@ -17,6 +17,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -60,6 +65,10 @@ public class SecurityConfig {
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(withDefaults());
 
+
+        // cors configuration
+        http.addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class);
+
         // Use requiredChannel only in production - https
         if (isProduction()) {
             // http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
@@ -87,4 +96,17 @@ public class SecurityConfig {
                 );
     }
 
+    // cors filter
+    @Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:3000")); // Legg til frontend-URL her
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Tillat relevante metoder
+        config.setAllowedHeaders(List.of("Content-Type", "Authorization", "Accept")); // Tillat relevante headers
+        config.setAllowCredentials(true); // Tillat sending av cookies hvis nødvendig
+
+        source.registerCorsConfiguration("/api/**", config); // Sett CORS for alle API-er under "/api/"
+        return new CorsFilter(source);
+    }
 }

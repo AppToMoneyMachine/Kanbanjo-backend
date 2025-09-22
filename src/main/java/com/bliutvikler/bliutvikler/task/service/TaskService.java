@@ -2,12 +2,14 @@ package com.bliutvikler.bliutvikler.task.service;
 
 import com.bliutvikler.bliutvikler.board.model.Board;
 import com.bliutvikler.bliutvikler.board.repository.BoardRepository;
+import com.bliutvikler.bliutvikler.participant.model.Participant;
 import com.bliutvikler.bliutvikler.swimlane.model.Swimlane;
 import com.bliutvikler.bliutvikler.swimlane.repository.SwimlaneRepository;
 import com.bliutvikler.bliutvikler.task.model.Task;
 import com.bliutvikler.bliutvikler.task.repository.TaskRepository;
 import com.bliutvikler.bliutvikler.user.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -52,7 +54,13 @@ public class TaskService {
         // Legg til swimlane i task
         Swimlane todoSwimlane = swimlanes.get(0);
         task.setSwimlane(todoSwimlane);
+        // Add task to swimlane
         todoSwimlane.getTasks().add(task);
+
+        // set rest of task properties
+        task.setBoard(board);
+        /*Participant userToParticipant = new Participant(currentUser.getUsername(), "", currentUser.getRoles(), board, currentUser.getUsername());
+        task.setParticipant(currentUser);*/
 
         return taskRepository.save(task);
     }

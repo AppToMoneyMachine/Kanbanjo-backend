@@ -26,6 +26,8 @@ public class TaskController {
     @Autowired
     private UserService userService;
 
+    // getTask
+
     @PostMapping("/create/{boardId}")
     public ResponseEntity<Task> createTask(@RequestBody Task task, @PathVariable Long boardId) {
         try {
@@ -34,7 +36,7 @@ public class TaskController {
             User currentUser = userService.findByUsername(username); // get userobject from the database
 
             Task savedTask = taskService.createTask(task, boardId, currentUser);
-            logger.info("Task created successfully with ID {}", savedTask.getId());
+            logger.info("Task created successfully with ID {}", savedTask.getId(), savedTask);
             return ResponseEntity.ok(savedTask);
         } catch (IllegalStateException e) {
             logger.error("Error creating task: {}", e.getMessage());

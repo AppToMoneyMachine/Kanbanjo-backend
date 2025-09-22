@@ -4,6 +4,7 @@ import com.bliutvikler.bliutvikler.board.model.Board;
 import com.bliutvikler.bliutvikler.participant.model.Participant;
 import com.bliutvikler.bliutvikler.swimlane.model.Swimlane;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -33,10 +34,11 @@ public class Task {
 
     @ManyToOne
     @JoinColumn(name = "swimlane_id") // Definerer kolonnenavn for fremmednøkkel i databasen
-    @JsonBackReference
+    @JsonBackReference("swimlane-task")
     private Swimlane swimlane;
 
     @ManyToOne
+    @JsonBackReference("board-task")
     @JoinColumn(name = "board_id") // Definerer kolonnenavn for fremmednøkkel i databasen
     private Board board;
 

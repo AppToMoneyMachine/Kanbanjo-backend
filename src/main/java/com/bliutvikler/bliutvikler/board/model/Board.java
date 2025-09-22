@@ -20,10 +20,11 @@ public class Board {
     private String name;
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonManagedReference("board-swimlane")
     private List<Swimlane> swimlanes = new ArrayList<>();
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("board-task")
     private List<Task> tasks = new ArrayList<>();
 
     @ManyToMany

@@ -25,7 +25,7 @@ public class Swimlane {
     // fremmednøkkel ligger i Task tabellen.
     // Cascade gir mye automatiser funksjon knyttet til relasjonen mellom Task og swimlane
     @OneToMany(mappedBy = "swimlane", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonManagedReference("swimlane-task")
     private List<Task> tasks;
 
     public Swimlane() {

@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("api/board")
 public class BoardController {
@@ -44,7 +46,6 @@ public class BoardController {
             logger.error("Error creating board: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
-
     }
 
     @PreAuthorize("isAuthenticated") // only logged in users can read a board
@@ -66,6 +67,30 @@ public class BoardController {
                     });
         } catch (Exception e) {
             logger.error("Error retrieving board with ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @PreAuthorize("isAuthenticated") // only logged in users can read a board
+    @GetMapping("mine")
+    public ResponseEntity<List<Board>> getBoardByOwner() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User currentUser = userService.findByUsername(username); // get userobject from the database
+
+            List<Board> boards = boardService.getBoardByOwnerId(currentUser);
+            logger.info("Boards found by service {}:", boards);
+
+            if (boards.isEmpty()) {
+                logger.info("No boards found on that owner id");
+                return ResponseEntity.noContent().build();
+            }
+            logger.info("Fetched {} boards for user {}", boards.size(), username);
+            return ResponseEntity.ok(boards);
+
+        } catch (Exception e) {
+            logger.error("Error retrieving boards for current user: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
