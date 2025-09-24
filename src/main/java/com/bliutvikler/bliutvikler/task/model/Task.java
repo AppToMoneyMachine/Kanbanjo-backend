@@ -38,8 +38,8 @@ public class Task {
     private Swimlane swimlane;
 
     @ManyToOne
+    @JoinColumn(name = "board_id") // defines column name for foreign key in db
     @JsonBackReference("board-task")
-    @JoinColumn(name = "board_id") // Definerer kolonnenavn for fremmednøkkel i databasen
     private Board board;
 
     public Task() {

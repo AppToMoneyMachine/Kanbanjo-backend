@@ -42,15 +42,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         // No JWT validation for registering, login or logout
         String requestURI = request.getRequestURI();
         if (requestURI.equals("/api/user/register") || requestURI.equals("/api/user/login") || requestURI.equals("/api/user/logout")) {
-            logger.info("No JWT validation for URI: {}", requestURI); // Debug statement
+            logger.info("No JWT validation for URI: {}", requestURI);
             chain.doFilter(request, response);
             return;
         }
 
-
         String username = null;
         String jwtToken = extractTokenFromHeaderOrCookie(request);
-
 
         if (jwtToken != null) {
             try {
@@ -64,35 +62,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             logger.warn("No JWT token found in header or cookie");
         }
 
-        // No JWT validation for registering, login or logout
-        /*String requestURI = request.getRequestURI();
-        if (requestURI.equals("/api/user/register") || requestURI.equals("/api/user/login") || requestURI.equals("/api/user/logout")) {
-            logger.info("No JWT validation for URI: {}", requestURI); // Debug statement
-            chain.doFilter(request, response);
-            return;
-        }*/
-
-        // JWT-tokenen er i form av "Bearer token". Fjern "Bearer" og få tokenen.
-/*        if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
-            jwtToken = requestTokenHeader.substring(7);
-            try {
-                username = jwtUtil.extractUsername(jwtToken);
-            } catch (IllegalArgumentException e) {
-                System.out.println("Unable to get JWT token");
-            } catch ( ExpiredJwtException e) {
-                System.out.println("JWT token has expired");
-            }
-        } else {
-            logger.error("JWT Token does not begin with Bearer String");
-        }*/
-
         // Validate token
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
             // check if token is blacklisted
             if (blacklistedTokenService.isTokenBlacklisted(jwtToken)) {
-                logger.error("JWT token is blacklisted");
+                logger.warn("JWT token is blacklisted"); // unauthenticated
+                SecurityContextHolder.clearContext();
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 in response to client
+                return;
             } else if (jwtUtil.validateToken(jwtToken, userDetails.getUsername())) {
                 // if valid token
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
@@ -103,8 +82,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
         }
         logger.info("Request URI: {}", request.getRequestURI());
-        logger.info("JWT token: {}", jwtToken);
-        logger.info("Username: {}", username);
+
         chain.doFilter(request, response);
     }
     private String extractTokenFromHeaderOrCookie(HttpServletRequest request) {
@@ -122,9 +100,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     if (value != null && value.startsWith("Bearer")) {
                         return value.substring(7);
                     }
-                    /*if (value.startsWith("Bearer ")) {
-                        return value.substring(7);
-                    }*/
                     return value;
                 }
             }

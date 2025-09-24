@@ -18,9 +18,9 @@ public class Swimlane {
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "board_id")  // Denne linjen spesifiserer navnet på kolonnen som inneholder fremmednøkkelen.
-    @JsonBackReference
-    private Board board;  // Dette er referansen tilbake til Board.
+    @JoinColumn(name = "board_id")  // column with foreign key
+    @JsonBackReference("board-swimlane")
+    private Board board;
 
     // fremmednøkkel ligger i Task tabellen.
     // Cascade gir mye automatiser funksjon knyttet til relasjonen mellom Task og swimlane

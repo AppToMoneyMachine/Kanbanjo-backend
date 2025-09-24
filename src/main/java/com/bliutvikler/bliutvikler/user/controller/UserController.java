@@ -7,6 +7,7 @@ import com.bliutvikler.bliutvikler.user.dto.UserInfoResponse;
 import com.bliutvikler.bliutvikler.user.model.User;
 import com.bliutvikler.bliutvikler.user.repository.UserRepository;
 import com.bliutvikler.bliutvikler.user.service.UserService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -148,21 +149,46 @@ public class UserController {
 
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logoutUser(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<Void> logoutUser(HttpServletRequest request, HttpServletResponse response) {
         try {
-            if (token.startsWith("Bearer ")) {
-                String jwtToken = token.substring(7);
-                LocalDateTime expiryDate = jwtUtil.extractExpiration(jwtToken).toInstant()
-                        .atZone(java.time.ZoneId.systemDefault())
-                        .toLocalDateTime();
-                blacklistedTokenService.blacklistToken(jwtToken, expiryDate);
-                SecurityContextHolder.clearContext();
-                logger.info("User logged out and token blacklisted: {}", jwtToken);
-                return ResponseEntity.ok().build();
-            } else {
-                logger.error("Invalid token format");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            String jwtToken = null;
+
+            // check through all tokens in request and find "token"
+            if (request.getCookies() != null) {
+                for (Cookie c : request.getCookies()) {
+                    if ("token".equals(c.getName())) {
+                        jwtToken = c.getValue();
+                        break;
+                    }
+                }
             }
+
+        // empty security context
+        SecurityContextHolder.clearContext();
+
+        // creates a new blank token and updates the existing one
+        ResponseCookie clear = ResponseCookie.from("token", "")
+                .httpOnly(true)
+                .secure(false) // true for prod environment over https
+                .path("/")
+                .maxAge(0) // browser deletes cookie right away when set to 0
+                .sameSite("strict")
+                .build();
+
+        // instructs browser to overwrite existing token cookie
+        response.addHeader(HttpHeaders.SET_COOKIE, clear.toString());
+
+
+        // TODO: blacklist token if it exists
+       /* if (jwtToken != null && !jwtToken.isBlank()) {
+            // Valgfritt: blacklist hvis du håndhever blacklist i JWT-filteret
+            LocalDateTime expiryDate = jwtUtil.extractExpiration(jwtToken).toInstant()
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDateTime();
+            blacklistedTokenService.blacklistToken(jwtToken, expiryDate);
+        }*/
+
+        return ResponseEntity.noContent().build(); // status code 204
         } catch (Exception e) {
             logger.error("Error logging out user: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
