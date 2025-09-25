@@ -71,7 +71,7 @@ public class BoardController {
         }
     }
 
-    @PreAuthorize("isAuthenticated") // only logged in users can read a board
+    @PreAuthorize("isAuthenticated") // only logged in users can read personal boards
     @GetMapping("mine")
     public ResponseEntity<List<Board>> getBoardByOwner() {
         try {

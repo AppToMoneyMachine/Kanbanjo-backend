@@ -40,7 +40,7 @@ public class Board {
     private User owner;
 
     public Board() {
-        // Nødvendig tom konstruktør for JPA
+        // empty constructor needed for JPA
     }
 
     public Board(Long id, String name, List<Swimlane> swimlanes, List<Task> tasks, List<Participant> participants, User owner) {
