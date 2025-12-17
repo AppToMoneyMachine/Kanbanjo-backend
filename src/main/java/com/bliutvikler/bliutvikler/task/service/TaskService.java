@@ -2,14 +2,13 @@ package com.bliutvikler.bliutvikler.task.service;
 
 import com.bliutvikler.bliutvikler.board.model.Board;
 import com.bliutvikler.bliutvikler.board.repository.BoardRepository;
-import com.bliutvikler.bliutvikler.participant.model.Participant;
 import com.bliutvikler.bliutvikler.swimlane.model.Swimlane;
 import com.bliutvikler.bliutvikler.swimlane.repository.SwimlaneRepository;
+import com.bliutvikler.bliutvikler.task.dto.TaskCreateRequestDto;
 import com.bliutvikler.bliutvikler.task.model.Task;
 import com.bliutvikler.bliutvikler.task.repository.TaskRepository;
 import com.bliutvikler.bliutvikler.user.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,7 +26,7 @@ public class TaskService {
     @Autowired
     private TaskRepository taskRepository;
 
-    public Task createTask(Task task, Long boardId, User currentUser) {
+    public Task createTask(TaskCreateRequestDto dto, Long boardId, User currentUser) {
         // Finne tilhørende board og sjekk om bord finnes
         Optional<Board> boardOptional = boardRepository.findById(boardId);
         if (!boardOptional.isPresent()) {
@@ -43,22 +42,28 @@ public class TaskService {
             throw new IllegalStateException("User is not authorized to create tasks in this board");
         }
 
-        // Finne tilhørende swimlane
+        // find swimlane that belongs to the task
         List<Swimlane> swimlanes = board.getSwimlanes();
 
         if (swimlanes.isEmpty()) {
             throw new IllegalStateException("No swimlanes available on this board!");
         }
 
-        // Legge task under første swimlane
-        // Legg til swimlane i task
+        // add task to first swimlane
         Swimlane todoSwimlane = swimlanes.get(0);
+
+        Task task = new Task();
+        task.setName(dto.name());
+        task.setDescription(dto.description());
+        task.setCreatedAt(java.time.LocalDateTime.now());
         task.setSwimlane(todoSwimlane);
+        task.setBoard(board);
+
         // Add task to swimlane
         todoSwimlane.getTasks().add(task);
 
-        // set rest of task properties
-        task.setBoard(board);
+
+        // TODO: support for participant
         /*Participant userToParticipant = new Participant(currentUser.getUsername(), "", currentUser.getRoles(), board, currentUser.getUsername());
         task.setParticipant(currentUser);*/
 
@@ -91,7 +96,7 @@ public class TaskService {
         return taskRepository.save(taskToBeMoved);
     }
 
-    public Task updateTask(Long taskId, Task taskInputData, User currentUser) {
+    public Task updateTask(Long taskId, TaskCreateRequestDto dto, User currentUser) {
 
         // find task to be updated
         Task taskToBoard = taskRepository.findById(taskId).orElseThrow(() -> new IllegalArgumentException("Task not found with ID:" + taskId));
@@ -109,13 +114,14 @@ public class TaskService {
         // finne tasken som skal oppdateres
         Task taskToBeUpdated = taskRepository.findById(taskId).orElseThrow(() -> new IllegalArgumentException("Task not found with ID:" + taskId));
         // data som task skal oppdateres med
-        if (taskInputData.getName() != null) {
-            taskToBeUpdated.setName(taskInputData.getName());
+        if (dto.name() != null) {
+            taskToBeUpdated.setName(dto.name());
         }
-        if (taskInputData.getDescription() != null) {
-            taskToBeUpdated.setDescription(taskInputData.getDescription());
+        if (dto.description() != null) {
+            taskToBeUpdated.setDescription(dto.description());
         }
-        if (taskInputData.getParticipant() != null) {
+        // TODO: add more fields to update
+      /* if (taskInputData.getParticipant() != null) {
             taskToBeUpdated.setParticipant(taskInputData.getParticipant());
         }
         if (taskInputData.getStatus() != null) {
@@ -123,7 +129,11 @@ public class TaskService {
         }
         if (taskInputData.getPriority() != null) {
             taskToBeUpdated.setPriority(taskInputData.getPriority());
-        }
+        }*/
+/*        if (taskInputData.getSwimlane() != null) {
+            taskToBeUpdated.setSwimlane(taskInputData.getSwimlane());
+        }*/
+        taskToBeUpdated.setUpdatedAt(java.time.LocalDateTime.now());
         return taskRepository.save(taskToBeUpdated);
     }
 

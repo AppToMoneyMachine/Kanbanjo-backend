@@ -1,5 +1,8 @@
 package com.bliutvikler.bliutvikler.task.controller;
 
+import com.bliutvikler.bliutvikler.task.dto.TaskCreateRequestDto;
+import com.bliutvikler.bliutvikler.task.dto.TaskMapper;
+import com.bliutvikler.bliutvikler.task.dto.TaskResponseDto;
 import com.bliutvikler.bliutvikler.task.model.Task;
 import com.bliutvikler.bliutvikler.task.service.TaskService;
 import com.bliutvikler.bliutvikler.user.model.User;
@@ -29,15 +32,16 @@ public class TaskController {
     // getTask
 
     @PostMapping("/create/{boardId}")
-    public ResponseEntity<Task> createTask(@RequestBody Task task, @PathVariable Long boardId) {
+    public ResponseEntity<TaskResponseDto> createTask(@RequestBody TaskCreateRequestDto dto, @PathVariable Long boardId) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             User currentUser = userService.findByUsername(username); // get userobject from the database
 
-            Task savedTask = taskService.createTask(task, boardId, currentUser);
-            logger.info("Task created successfully with ID {}", savedTask.getId(), savedTask);
-            return ResponseEntity.ok(savedTask);
+            Task savedTask = taskService.createTask(dto, boardId, currentUser);
+            // logger.info("Task with username from requestBody: participant={}", savedTask.participant());
+            logger.info("Task created successfully with ID {} {}", savedTask.getId(), savedTask);
+            return ResponseEntity.ok(TaskMapper.toDto(savedTask));
         } catch (IllegalStateException e) {
             logger.error("Error creating task: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
@@ -49,7 +53,7 @@ public class TaskController {
     }
 
     @PutMapping("/{taskId}/move/{swimlaneId}")
-    public ResponseEntity<Task> moveTask(@PathVariable Long taskId, @PathVariable Long swimlaneId) {
+    public ResponseEntity<TaskResponseDto> moveTask(@PathVariable Long taskId, @PathVariable Long swimlaneId) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
@@ -57,7 +61,7 @@ public class TaskController {
 
             Task movedTask = taskService.moveTaskBetweenSwimlanes(taskId, swimlaneId, currentUser);
             logger.info("Task moved successfully with ID {}", taskId);
-            return ResponseEntity.ok(movedTask);
+            return ResponseEntity.ok(TaskMapper.toDto(movedTask));
         } catch (IllegalStateException e) {
             logger.error("Error moving task: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
@@ -68,15 +72,15 @@ public class TaskController {
     }
 
     @PutMapping("/update/{taskId}")
-    public ResponseEntity<Task> updateTask(@RequestBody Task task ,@PathVariable Long taskId) {
+    public ResponseEntity<TaskResponseDto> updateTask(@RequestBody TaskCreateRequestDto dto ,@PathVariable Long taskId) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             User currentUser = userService.findByUsername(username); // get userobject from the database
 
-            Task updatedTask = taskService.updateTask(taskId, task, currentUser);
+            Task updatedTask = taskService.updateTask(taskId, dto, currentUser);
             logger.info("Task updated successfully with ID {}", taskId);
-            return ResponseEntity.ok(updatedTask);
+            return ResponseEntity.ok(TaskMapper.toDto(updatedTask));
         } catch (IllegalStateException e) {
             logger.error("Error updating task - bad request: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);

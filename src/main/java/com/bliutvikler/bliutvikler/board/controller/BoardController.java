@@ -1,5 +1,7 @@
 package com.bliutvikler.bliutvikler.board.controller;
 
+import com.bliutvikler.bliutvikler.board.dto.BoardMapper;
+import com.bliutvikler.bliutvikler.board.dto.BoardResponseDto;
 import com.bliutvikler.bliutvikler.board.model.Board;
 import com.bliutvikler.bliutvikler.board.service.BoardService;
 import com.bliutvikler.bliutvikler.user.model.User;
@@ -50,7 +52,7 @@ public class BoardController {
 
     @PreAuthorize("isAuthenticated") // only logged in users can read a board
     @GetMapping("{id}")
-    public ResponseEntity<Board> getBoard(@PathVariable Long id) {
+    public ResponseEntity<BoardResponseDto> getBoard(@PathVariable Long id) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
@@ -59,7 +61,7 @@ public class BoardController {
             return boardService.getBoard(id, currentUser)
                     .map(board -> {
                         logger.info("Fetching board with ID {}", id);
-                        return ResponseEntity.ok(board);
+                        return ResponseEntity.ok(BoardMapper.toDto(board));
                     })
                     .orElseGet(() -> {
                         logger.info("Board not found with ID {}", id);
@@ -73,7 +75,7 @@ public class BoardController {
 
     @PreAuthorize("isAuthenticated") // only logged in users can read personal boards
     @GetMapping("mine")
-    public ResponseEntity<List<Board>> getBoardByOwner() {
+    public ResponseEntity<List<BoardResponseDto>> getBoardByOwner() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
@@ -86,8 +88,13 @@ public class BoardController {
                 logger.info("No boards found on that owner id");
                 return ResponseEntity.noContent().build();
             }
+
+            List<BoardResponseDto> dtoList = boards.stream()
+                            .map(board -> BoardMapper.toDto(board))
+                                    .toList();
+
             logger.info("Fetched {} boards for user {}", boards.size(), username);
-            return ResponseEntity.ok(boards);
+            return ResponseEntity.ok(dtoList);
 
         } catch (Exception e) {
             logger.error("Error retrieving boards for current user: {}", e.getMessage());
